@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transparent Video with Eye Behind</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      background: transparent;
+      overflow: hidden;
+      position: relative;
+    }
+
+    video.background-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .eye-container {
+      position: fixed;
+      top: 280px;
+      left: 1480px;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .eye {
+      width: 10vw;
+      aspect-ratio: 1 / 1;
+      background-image: url("1p1.png");
+      background-size: 400px;
+      background-position: 50% 50%;
+      position: relative;
+      transition: background-position 0.2s ease-out;
+    }
+
+    .pupil {
+      width: 26%;
+      height: 26%;
+      position: absolute;
+      top: 37%;
+      left: 37%;
+      border-radius: 50%;
+      overflow: hidden;
+      transition: transform 0.2s ease;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+    }
+
+    .pupil video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(4);
+    }
+
+    .di {
+      position: fixed;
+      top: 400px;
+      left: 1100px;
+      width: 500px;
+      height: 500px;
+      background: black;
+      z-index: 1;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1400px) {
+      .eye-container {
+        top: 25vh;
+        left: 80vw;
+      }
+
+      .di {
+        top: 50vh;
+        left: 60vw;
+        width: 30vw;
+        height: 30vw;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .eye {
+        width: 20vw;
+      }
+
+      .eye-container {
+        top: 20vh;
+        left: 70vw;
+      }
+
+      .di {
+        top: 60vh;
+        left: 50vw;
+        width: 40vw;
+        height: 40vw;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .eye {
+        width: 30vw;
+      }
+
+      .eye-container {
+        top: 18vh;
+        left: 50vw;
+      }
+
+      .di {
+        top: 65vh;
+        left: 50vw;
+        width: 50vw;
+        height: 50vw;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="di"></div>
+
+  <div class="eye-container" id="eyeContainer">
+    <div class="eye" id="eye">
+      <div class="pupil" id="pupil">
+        <video src="eye2video.mp4" autoplay muted loop playsinline></video>
+      </div>
+    </div>
+  </div>
+
+  <video class="background-video" autoplay muted loop playsinline>
+    <source src="c1.webm" type="video/webm">
+  </video>
+
+  <script>
+    const eye = document.getElementById('eye');
+    const pupil = document.getElementById('pupil');
+
+    let resetTimer;
+
+    function updateEyePosition(x, y) {
+      const rect = eye.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      const dx = x - centerX;
+      const dy = y - centerY;
+      const angle = Math.atan2(dy, dx);
+      const radius = rect.width * 0.08;
+
+      const offsetX = Math.cos(angle) * radius;
+      const offsetY = Math.sin(angle) * radius;
+
+      pupil.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+
+      const bgOffsetX = (dx / rect.width) * 1.0;
+      const bgOffsetY = (dy / rect.height) * 1.0;
+      eye.style.backgroundPosition = `${50 - bgOffsetX}% ${50 - bgOffsetY}%`;
+
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => {
+        pupil.style.transform = 'translate(0, 0)';
+        eye.style.backgroundPosition = '50% 50%';
+      }, 4000);
+    }
+
+    document.addEventListener('mousemove', (e) => {
+      updateEyePosition(e.clientX, e.clientY);
+    });
+
+    document.addEventListener('touchmove', (e) => {
+      if (e.touches.length > 0) {
+        updateEyePosition(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    }, { passive: true });
+  </script>
+</body>
+</html>
